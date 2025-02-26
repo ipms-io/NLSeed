@@ -1,0 +1,36 @@
+# .NET build output
+**/bin/
+**/obj/
+
+# Development files
+**/.vs/
+**/.vscode/
+**/.idea/
+**/.DS_Store/
+
+# Configuration files
+**/appsettings*.json
+**/*.Development.json
+**/*.Production.json
+**/*.Staging.json
+
+# Source control
+**/.git/
+.gitignore
+.gitattributes
+
+# Docker files
+**/Dockerfile*
+**/.dockerignore
+
+# Logs
+**/*.log
+
+# Node modules (if you have any frontend dependencies)
+**/node_modules/
+
+# Other development files
+**/*.user
+**/*.userosscache
+**/*.dbmdl
+**/*.jfm
