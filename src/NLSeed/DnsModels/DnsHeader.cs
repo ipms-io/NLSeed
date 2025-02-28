@@ -29,8 +29,8 @@ public class DnsHeader
 
     public byte[] ToByteArray()
     {
-        byte[] bytes = new byte[12];
-        int offset = 0;
+        var bytes = new byte[12];
+        var offset = 0;
         bytes[offset++] = (byte)(Id >> 8);
         bytes[offset++] = (byte)(Id & 0xFF);
         bytes[offset++] = (byte)(Flags >> 8);
@@ -42,7 +42,7 @@ public class DnsHeader
         bytes[offset++] = (byte)(NSCount >> 8);
         bytes[offset++] = (byte)(NSCount & 0xFF);
         bytes[offset++] = (byte)(ARCount >> 8);
-        bytes[offset++] = (byte)(ARCount & 0xFF);
+        bytes[offset] = (byte)(ARCount & 0xFF);
         return bytes;
     }
 }

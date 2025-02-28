@@ -8,18 +8,18 @@ public class SeederService(BackupService backupService, ILightningService lightn
 {
     public async Task RunAsync(CancellationToken cancellationToken)
     {
-        // Check connection status
-        if (!await lightningService.CheckConnectionAsync(cancellationToken))
-        {
-            throw new Exception("Cannot establish connection to the node");
-        }
-        
-        // Run jobs
-        await Task.Run(() => Task.WaitAll(CollectDataAsync(cancellationToken), PruneNetworkView(cancellationToken)), CancellationToken.None);
-        
-        // Backup node list
-        await backupService.BackupAllNodesInfoAsync(networkViewService.AllNodes.ToDictionary());
-        await backupService.BackupReachableNodesInfoAsync(networkViewService.ReachableNodes.ToDictionary());
+        // // Check connection status
+        // if (!await lightningService.CheckConnectionAsync(cancellationToken))
+        // {
+        //     throw new Exception("Cannot establish connection to the node");
+        // }
+        //
+        // // Run jobs
+        // await Task.Run(() => Task.WaitAll(CollectDataAsync(cancellationToken), PruneNetworkView(cancellationToken)), CancellationToken.None);
+        //
+        // // Backup node list
+        // await backupService.BackupAllNodesInfoAsync(networkViewService.AllNodes.ToDictionary());
+        // await backupService.BackupReachableNodesInfoAsync(networkViewService.ReachableNodes.ToDictionary());
     }
 
     private async Task CollectDataAsync(CancellationToken cancellationToken)

@@ -111,7 +111,7 @@ public class NetworkViewService
 
     public List<Node> RandomSample(byte query, int count)
     {
-        return ReachableNodes.Where(x => query == 0 || x.Value.Type == query).Take(count).Select(x => x.Value).ToList();
+        return ReachableNodes.Where(x => query == 255 || (x.Value.Type & query) != 0).Take(count).Select(x => x.Value).ToList();
     }
 
     private async Task<ICollection<IPEndPoint>> GetReachableAddressesFromNodeAsync(Node node, CancellationToken cancellationToken)

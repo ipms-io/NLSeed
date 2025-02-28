@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NLSeed.Handlers;
 using NLSeed.Interfaces;
 using NLSeed.Services;
 
@@ -28,7 +29,10 @@ serviceCollection.AddSingleton<ILightningService, LndService>();
 serviceCollection.AddSingleton<NetworkViewService>();
 serviceCollection.AddSingleton<SeederService>();
 serviceCollection.AddSingleton<BackupService>();
-// serviceCollection.AddSingleton<DnsService>();
+serviceCollection.AddSingleton<DnsService>();
+
+serviceCollection.AddScoped<LightningDnsHandler>();
+serviceCollection.AddScoped<SrvQueryHandler>();
 
 using var cts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) =>
@@ -42,10 +46,12 @@ var serviceProvider = serviceCollection.BuildServiceProvider();
 var seederService = serviceProvider.GetRequiredService<SeederService>();
 var seederTask = seederService.RunAsync(cts.Token);
 
-// var dnsService = serviceProvider.GetRequiredService<DnsService>();
-// var dnsTask = dnsService.RunUdpServerAsync(cts.Token);
+var dnsService = serviceProvider.GetRequiredService<DnsService>();
+var udpTask = dnsService.RunUdpServerAsync(cts.Token);
+var tcpTask = dnsService.RunTcpServerAsync(cts.Token);
 
-Task.WaitAll(seederTask);//, dnsTask);
+Task.WaitAll(seederTask, udpTask, tcpTask);
+return;
 
 static void HandleTermination(PosixSignalContext context)
 {

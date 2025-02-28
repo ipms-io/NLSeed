@@ -5,8 +5,9 @@ namespace NLSeed.DnsModels;
 public class DnsMessage
     {
         public DnsHeader Header { get; set; }
-        public List<DnsQuestion> Questions { get; set; } = new List<DnsQuestion>();
-        public List<DnsRecord> Answers { get; set; } = new List<DnsRecord>();
+        public List<DnsQuestion> Questions { get; set; } = [];
+        public List<DnsRecord> Answers { get; set; } = [];
+        public List<DnsRecord> Extras { get; set; } = [];
 
         public static DnsMessage Parse(byte[] data)
         {
@@ -26,19 +27,14 @@ public class DnsMessage
         public byte[] ToByteArray()
         {
             var bytes = new List<byte>();
-            // Update answer count.
+            
             Header.ANCount = (ushort)Answers.Count;
             bytes.AddRange(Header.ToByteArray());
-            foreach (var question in Questions)
-            {
-                bytes.AddRange(question.ToByteArray());
-            }
-            // For answers, we’ll write a very simple response.
-            // For simplicity, we use a pointer for the Name field in the answer: 0xC00C points to offset 12.
+            
             foreach (var answer in Answers)
             {
-                bytes.Add(0xC0);
-                bytes.Add(0x0C);
+                bytes.AddRange(Questions[0].EncodedQName());
+
                 if (answer is DnsSRVRecord srv)
                 {
                     // Type (SRV = 33)
@@ -48,8 +44,10 @@ public class DnsMessage
                     bytes.Add(0x00);
                     bytes.Add(0x01);
                     // TTL (4 bytes) – we use 60 seconds
-                    var ttl = 60;
-                    bytes.AddRange(BitConverter.GetBytes(IPAddress.HostToNetworkOrder(ttl)));
+                    bytes.Add(0);
+                    bytes.Add(0);
+                    bytes.Add(0);
+                    bytes.Add(60 & 0xFF);
                     // RDLENGTH (2 bytes)
                     var rdata = srv.ToByteArray();
                     var rdLength = (ushort)rdata.Length;
@@ -57,8 +55,31 @@ public class DnsMessage
                     bytes.Add((byte)(rdLength & 0xFF));
                     // RDATA
                     bytes.AddRange(rdata);
+                } 
+                else if (answer is DnsARecord a)
+                {
+                    // TYPE (A = 1)
+                    bytes.Add(0x00);
+                    bytes.Add(0x01);
+                    // CLASS (INET = 1)
+                    bytes.Add(0x00);
+                    bytes.Add(0x01);
+                    // TTL (4 bytes) – 60 seconds in big-endian.
+                    bytes.Add(0);
+                    bytes.Add(0);
+                    bytes.Add(0);
+                    bytes.Add(60 & 0xFF);
+                    // RDATA: For an A record, this is the 4-byte IPv4 address.
+                    var rdata = a.ToByteArray(); // Expected to be exactly 4 bytes.
+                    var rdLength = (ushort)rdata.Length;  // Should be 4.
+                    // RDLENGTH (2 bytes) in big-endian.
+                    bytes.Add((byte)(rdLength >> 8));
+                    bytes.Add((byte)(rdLength & 0xFF));
+                    // Append RDATA.
+                    bytes.AddRange(rdata);
                 }
             }
+            
             return bytes.ToArray();
         }
         
@@ -68,9 +89,11 @@ public class DnsMessage
         /// </summary>
         public void SetReply(DnsMessage query)
         {
-            Header.Id = query.Header.Id;
-            // Set the reply flag (QR bit).
-            Header.Flags = (ushort)(query.Header.Flags | 0x8000);
+            Header = new DnsHeader
+            {
+                Id = query.Header.Id,
+                Flags = (ushort)(query.Header.Flags | 0x8000)
+            };
             Questions = query.Questions;
         }
     }

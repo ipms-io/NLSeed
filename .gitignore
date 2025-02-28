@@ -6,6 +6,12 @@
 # dotenv files
 .env
 
+# App Settings
+appsettings.json
+
+# Node backup files
+*.bkp
+
 # User-specific files
 *.rsuser
 *.suo

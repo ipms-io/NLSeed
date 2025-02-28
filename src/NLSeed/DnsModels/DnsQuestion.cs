@@ -24,7 +24,7 @@ public class DnsQuestion
     public byte[] ToByteArray()
     {
         var bytes = new List<byte>();
-        bytes.AddRange(EncodeDomainName(QName));
+        bytes.AddRange(EncodedQName());
         bytes.Add((byte)(QType >> 8));
         bytes.Add((byte)(QType & 0xFF));
         bytes.Add((byte)(QClass >> 8));
@@ -33,10 +33,10 @@ public class DnsQuestion
     }
 
     // Encode a domain name into DNS label format.
-    private static byte[] EncodeDomainName(string domain)
+    public byte[] EncodedQName()
     {
         var bytes = new List<byte>();
-        var labels = domain.TrimEnd('.').Split('.');
+        var labels = QName.TrimEnd('.').Split('.');
         foreach (var label in labels)
         {
             var len = (byte)label.Length;
